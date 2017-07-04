@@ -1,0 +1,34 @@
+#%RAML 1.0
+baseUri: http://sap-system-api-1.eu.cloudhub.io/api
+title: sap-system-api
+version: 1.0
+
+securitySchemes:
+  BasicAuth: !include exchange_modules/com.pre-sales.siemens-poc2-0/client-id-security-scheme/1.0.0/client-id-security-scheme.raml
+  
+types:
+  Order:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/order-type/1.0.0/order-type.raml
+  Operation:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/operation-type/1.0.0/operation-type.raml
+
+/order:
+  /{order_number}:
+   securedBy: [BasicAuth]
+   get:
+     description: Get the order details
+     responses: 
+       200:
+         body: 
+           application/json:
+             type: Order
+             
+  /{order_number}/operation:
+   securedBy: [BasicAuth]
+   get:
+     description: Get the operations for an order
+     responses: 
+       200:
+         body: 
+           application/json:
+             type: Operation[]           

@@ -1,0 +1,22 @@
+#%RAML 1.0
+title: work-order-process-api
+baseUri: http://workorder-papi-deb.eu.cloudhub.io/api
+version: 1.0
+
+securitySchemes:
+  BasicAuth: !include exchange_modules/com.pre-sales.siemens-poc2-0/client-id-security-scheme/1.0.0/client-id-security-scheme.raml
+  
+types:
+  Operation:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/operation-type/1.0.0/operation-type.raml
+
+/part:
+  /{order_number}/operation:
+      securedBy: [BasicAuth]
+      get:
+        description: get the list of operations for a part
+        responses: 
+          200:
+            body: 
+              application/json:
+                type: Operation[]              

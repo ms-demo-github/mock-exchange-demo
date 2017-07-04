@@ -1,0 +1,11 @@
+/.repository/
+/examples/
+/exchange.json
+/exchange_modules/
+/log4j2.xml
+/mule-app.properties
+/mule-deploy.properties
+/mysql-connector-java-5.1.18.jar
+/pax_global_header
+/product-api.raml
+/product-api.xml

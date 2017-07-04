@@ -1,0 +1,9 @@
+/.repository/
+/exchange.json
+/exchange_modules/
+/log4j2.xml
+/mule-app.properties
+/mule-deploy.properties
+/pax_global_header
+/wimp-experience-api.raml
+/wimp-experience-api.xml

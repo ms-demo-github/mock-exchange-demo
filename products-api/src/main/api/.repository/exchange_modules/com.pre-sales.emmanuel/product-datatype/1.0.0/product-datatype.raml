@@ -1,0 +1,25 @@
+#%RAML 1.0 Library
+usage: Defines the standard structure for a product
+
+types:
+  product:
+    properties:
+      id?: number
+      name: string
+      description?: string
+      productNumber?: string
+      manufactured?: boolean
+      colors?: string[]
+      safetyStockLevel?: number
+      standardCost?: number
+      size?: string
+      listPrice?: number
+      sizeUnitMeasureCode?: string
+      weightUnitMeasureCode?: string
+      weight?: number
+      daysToManufacture?: number
+      categories?: string[]
+      stock?: number
+      images?: string[]
+      modifiedDate?: string
+      createdDate?: string

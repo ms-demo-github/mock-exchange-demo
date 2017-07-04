@@ -1,0 +1,71 @@
+#%RAML 1.0
+version: 1.0
+title: Product API for Database
+baseUri: http://localhost:8081/api
+ 
+traits:
+  collection: !include exchange_modules/com.pre-sales.emmanuel/pageable-trait/1.0.0/pageable-trait.raml
+  client-id-secured: !include exchange_modules/com.pre-sales.emmanuel/client-id-secured-trait/1.0.0/client-id-secured-trait.raml
+ 
+uses:
+  Product: exchange_modules/com.pre-sales.emmanuel/product-datatype/1.0.0/product-datatype.raml
+types:
+  objectName: Product.product
+
+/product:
+  displayName: Products
+  get:
+    description: |
+      Retrieve all the Products.
+    is: [ collection, client-id-secured ]
+    queryParameters:
+      name:
+        displayName: Product Name
+        required: false
+      category:
+        displayName: Product Category
+        required: false
+    responses:
+      200:
+        body:
+          application/json:
+            type: objectName[]
+            example: !include examples/collection.raml
+      400:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "Bad message"
+              }
+      404:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "No product found with that name"
+              }
+  /{id}:
+    is: [ collection, client-id-secured ]
+    displayName: Product ID
+    description: Get Product by ID
+    uriParameters:
+      id:
+        type: integer
+        minimum: 0
+        example: 35
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: objectName
+              example: !include examples/single.raml
+        404:
+          body:
+            application/json:
+              example: |
+                {
+                  "message": "Resource not found"
+                }
+

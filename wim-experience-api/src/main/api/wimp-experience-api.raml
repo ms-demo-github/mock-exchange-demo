@@ -1,0 +1,59 @@
+#%RAML 1.0
+title: wimp-experience-api
+baseUri: http://wimp-experience-api.eu.cloudhub.io/api
+version: 1.0
+
+securitySchemes:
+  BasicAuth: !include exchange_modules/com.pre-sales.siemens-poc2-0/client-id-security-scheme/1.0.0/client-id-security-scheme.raml
+  
+types:
+  Operation:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/operation-type/1.0.0/operation-type.raml
+  Component:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/component-type/1.0.0/component-type.raml 
+  Order:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/order-type/1.0.0/order-type.raml
+    
+/part:
+  /{order_number}:
+   securedBy: [BasicAuth]
+   get:
+     description: Get the details of a part
+     responses: 
+       200:
+         body: 
+           application/json:
+             type: Order          
+
+  /{order_number}/location:
+      securedBy: [BasicAuth]
+      post:
+        description: update a location for a part
+        queryParameters: 
+          location:
+            type: string
+            required: true
+            example: "A41A-4160"
+        responses: 
+          200:
+          
+  /{top_material_number}/component:
+      securedBy: [BasicAuth]
+      get:
+        description: optain the components that make up a part
+        responses: 
+          200:
+            body: 
+              application/json:
+                type: Component[]
+                
+  /{order_number}/operation:
+      securedBy: [BasicAuth]
+      get:
+        description: get the list of operations for a part
+        responses: 
+          200:
+            body: 
+              application/json:
+                type: Operation[]
+            

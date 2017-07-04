@@ -1,0 +1,23 @@
+#%RAML 1.0
+baseUri: http://plm-system-api.eu.cloudhub.io/api
+title: plm-system-api
+version: 1.0
+
+securitySchemes:
+  BasicAuth: !include exchange_modules/com.pre-sales.siemens-poc2-0/client-id-security-scheme/1.0.0/client-id-security-scheme.raml
+  
+types:
+  Component:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/component-type/1.0.0/component-type.raml
+
+/part:
+  /{top_material_number}/component:
+      securedBy: [BasicAuth]
+      get:
+        description: get the list of components for a part
+        responses: 
+          200:
+            body: 
+              application/json:
+                type: Component[]
+              

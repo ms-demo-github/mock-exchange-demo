@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+    <http:listener-config name="product-api-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <apikit:config name="product-api-config" raml="product-api.raml" consoleEnabled="false" doc:name="Router"/>
+    <db:mysql-config name="MySQL_Configuration" host="${db.host}" port="${db.port}" user="${db.user}" password="${db.password}" database="${db.database}" doc:name="MySQL Configuration"/>
+    <validation:config name="Validation_Configuration" doc:name="Validation Configuration"/>
+    <flow name="product-api-main">
+        <http:listener config-ref="product-api-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+        <apikit:router config-ref="product-api-config" doc:name="APIkit Router"/>
+        <exception-strategy ref="product-api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="product-api-console">
+        <http:listener config-ref="product-api-httpListenerConfig" path="/console/*" doc:name="HTTP"/>
+        <apikit:console config-ref="product-api-config" doc:name="APIkit Console"/>
+    </flow>
+    <flow name="get:/product/{id}:product-api-config">
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[SELECT  p.id, p.name, p.description, p.product_number, p.manufactured, p.colors, p.categories, p.stock, p.safety_stock_level, p.standard_cost, p.list_price, p.size, p.size_unit_measure_code, p.weight, p.weight_unit_measure_code, p.days_to_manufacture, p.images,  p.modified_date, p.created_date
+FROM product p
+WHERE p.id = #[flowVars.id]]]></db:parameterized-query>
+        </db:select>
+        <validation:is-not-empty config-ref="Validation_Configuration" exceptionClass="org.mule.module.apikit.exception.NotFoundException" value="#[payload]" doc:name="Validation"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+%var product = payload[0]
+---
+{
+	id: product.id,
+	name: product.name,
+	description: product.description,
+	manufactured: product.manufactured,
+	productNumber: product.product_number,
+	colors: (product.colors default "") splitBy "," ,
+	categories:(product.categories default "") splitBy "," ,
+	safetyStockLevel: product.safety_socket_level,
+	standardCost: (product.standard_cost default "0.0") as :string {format: "##.##"} as :number,
+	listPrice: (product.list_price default "0.0") as :string {format: "##.##"} as :number,
+	stock: product.stock,
+	safetyStockLevel: product.safety_stock_level,
+	daysToManufacture: product.days_to_manufacture,
+	size: product.size,
+	sizeUnitMeasureCode: product.size_unit_measure_code,
+	weight: product.weight,
+	weightUnitMeasureCode: product.weight_unit_measure_code,
+	daysToManufacture: product.days_to_manufacture,
+	images: (product.images splitBy "," default null),
+	modifiedDate: (product.modified_date default "") as :date {format: "yyyy-MM-dd"},
+	createdDate: (product.created_date default "") as :date {format: "yyyy-MM-dd"}
+
+}
+]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="get:/product:product-api-config">
+        <db:select config-ref="MySQL_Configuration" doc:name="Select products">
+            <db:parameterized-query><![CDATA[SELECT  p.id, p.name, p.description, p.product_number, p.manufactured, p.colors, p.categories, p.stock, p.safety_stock_level, p.standard_cost, p.list_price, p.size, p.size_unit_measure_code, p.weight, p.weight_unit_measure_code, p.days_to_manufacture, p.images,  p.modified_date, p.created_date
+FROM product p
+LIMIT 10]]></db:parameterized-query>
+        </db:select>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload map {
+    id: $.id,
+    categories: ($.categories default "") splitBy ",",
+    colors: ($.colors default "") splitBy ",",
+    createdDate: $.created_date as :string {format: "yyyy-MM-dd"},
+    modifiedDate: $.modified_date as :string {format: "yyyy-MM-dd"},
+    safetyStockLevel: $.safety_stock_level as :number,
+    stock: $.stock as :number,
+    daysToManufacture: $.days_to_manufacture,
+    name: $.name,
+    description: $.description,
+    images: ($.images default "") splitBy ",",
+    listPrice: $.list_price,
+    manufactured: $.manufactured,
+    productNumber: $.product_number,
+    size: $.size,
+    sizeUnitMeasureCode: $.size_unit_measure_code,
+    standardCost: $.standard_cost,
+    weightUnitMeasureCode: $.weight_unit_measure_code,
+    weight: $.weight
+}
+]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <apikit:mapping-exception-strategy name="product-api-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+</mule>

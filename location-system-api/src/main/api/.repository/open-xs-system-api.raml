@@ -1,0 +1,45 @@
+#%RAML 1.0
+
+baseUri: http://openxs-system-api.eu.cloudhub.io/api
+title: open-xs-system-api
+version: 1.0
+
+securitySchemes:
+  BasicAuth: !include exchange_modules/com.pre-sales.siemens-poc2-0/client-id-security-scheme/1.0.0/client-id-security-scheme.raml
+  
+types:
+  Location:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/location-type/1.0.0/location-type.raml
+  Operation:
+    type: !include exchange_modules/com.pre-sales.siemens-poc2-0/operation-type/1.0.0/operation-type.raml
+
+/part:
+  /{order_number}/location:
+    securedBy: [BasicAuth]
+    post:
+      description: update a location for a part
+      queryParameters: 
+        location:
+          type: string
+          required: true
+          example: "A41A-4160"
+      responses: 
+        200:
+
+    get:
+      description: Get the location for part
+      responses: 
+        200:
+          body: 
+            application/json:
+              type: Location          
+
+  /{order_number}/operation:
+      securedBy: [BasicAuth]
+      get:
+        description: get the status of operations for a part
+        responses: 
+          200:
+            body: 
+              application/json:
+                type: Operation        
